@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Practica Docker</title>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="css_practica_docker.css" type="text/css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+
+<body>
+<br><br>
+<h1>CREANDO Y LEYENDO AUTORES CON DOCKER</h1>
+
+<p>Consumir el API de obtener autores y mostrarlos.</p>
+<div style="height: 300px; width: 600px; color: rgb(255, 0, 0); background-color:lightgreen; margin-left: 20px;">
+<p><strong>NOMBRE: </strong> <span id="nombre"></span></p>
+<p><strong>LOCALIZACION: </strong> <span id="localizacion"></span></p>
+<p><strong>CORREO: </strong> <span id="email"></span></p>
+<p><strong>FECHA NACIMIENTO Y EDAD: </strong> <span id="edad"></span></p>
+<br>
+<p><strong>AUTOR:</strong> <span id="author"></span></p>
+<p><strong>FRASE:</strong> <span id="phrase"></span></p>
+</div>
+<hr><hr>
+
+<script>
+  addEventListener("DOMContentLoaded", () => {
+//Codigo que consume la API de usuarios aleatorios
+fetch('https://randomuser.me/api/')
+  .then(response => response.json())
+  .then((datos) => {
+    document.getElementById("nombre").innerText = datos.results[0].name.first + ', ' + datos.results[0].name.last;
+    document.getElementById("localizacion").innerText = datos.results[0].location.city + '/' + datos.results[0].location.state + '/' + datos.results[0].location.country;
+    document.getElementById("email").innerText = datos.results[0].email;
+    document.getElementById("edad").innerText = datos.results[0].dob.date + ' --- ' + datos.results[0].dob.age;
+
+    let imagen;
+    if (datos.results[0].gender == "female")
+      imagen = "imagenes/femenino.png";
+    else
+    imagen = "imagenes/masculino.png";
+
+    fetch('https://randomuser.me/api/portraits/men/29.jpg', {
+      mode:"cors"
+    })
+      .then(response => response.blob())
+      .then(datos => document.getElementById("foto").setAttribute('src', URL.createObjectURL(datos)));
+  });
+  });
+</script>
+
+
+<hr>
+<h2>LLENA EL FORMULARIO PARA INGRESAR UN NUEVO AUTOR<h2>
+<br>
+<div class="container h-100">
+  <div class="row">
+    <form id="formulario_autor">
+      <div class="form-group">
+        <label for="author">NOMBRE DEL AUTOR</label>
+        <input type="text" class="form-control" id="author" name="author" required>
+      </div>
+      <div class="form-group">
+        <label for="phrase">FRASE DEL AUTOR</label>
+        <input type="text" class="form-control" id="phrase" name="phrase" required>
+      </div>
+      <div class="form-group">
+        <button type="button" id="boton1" class="btn btn-primary">Agregar Autor</button>
+      </div>
+    </form>
+
+    <table class="table table-striped" id="tabla_autores">
+    </table>
+  </div>
+</div>
+
+<script>
+addEventListener("DOMContentLoaded", () => {
+  listarAutores();
+  document.getElementById("boton1").addEventListener("click", () => agregarAutor());
+});
+
+function agregarAutor(){
+  const datos = new URLSearchParams(new FormData(document.getElementById("formulario_autor")));
+  fetch('IP/authors', {    //ruta del api para hacer el POST
+    method: 'POST',
+    body: datos
+  })
+    .then(response => response.json())
+    .then(datos => listarAutores());
+}
+
+function listarAutores() {
+  fetch("IP/authors")   //ruta del api para hacer el GET
+    .then(response => response.json())
+    .then(datos => {
+      let cad = '<tr><th>NOMBRE</th><th>FRASE</th></tr>';
+      for (let autor of datos) {
+        cad += `<tr><td>${autor.author}</td>
+        <td>${autor.phrase}</td></tr>`;
+      }
+      document.getElementById("tabla_autores").innerHTML = cad;
+    });
+  }
+
+</script>
+
+</body>
+</html>
+
+
